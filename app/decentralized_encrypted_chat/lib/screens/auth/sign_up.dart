@@ -6,11 +6,11 @@ import 'package:decentralized_encrypted_chat/widgets/input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class SignIn extends StatelessWidget {
+class SignUp extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
   final _emailController = new TextEditingController();
   final _passwordController = new TextEditingController();
-
+  final _confirmController = new TextEditingController();
   @override
   Widget build(BuildContext context) {
     ScreenConfig().init(context);
@@ -43,35 +43,47 @@ class SignIn extends StatelessWidget {
               child: Column(
                 children: [
                   InputField(
+                      validator: (string) =>
+                          Util.emptyOrNullStringValidator(string),
+                      hintText: "Ex: abc@gmail.com",
+                      label: "Type your email",
+                      textEditingController: _emailController,
+                      textInputType: TextInputType.emailAddress,
+                      icon: Icons.email),
+                  SizedBox(
+                    height: dh * 1,
+                  ),
+                  InputField(
                     validator: (string) =>
                         Util.emptyOrNullStringValidator(string),
-                    hintText: "Enter your email",
-                    label: "Email",
-                    icon: Icons.email,
+                    hintText: "********",
+                    textEditingController: _passwordController,
+                    label: "Type your password",
                     textInputType: TextInputType.text,
-                    textEditingController: _emailController,
+                    obscureText: true,
+                    icon: Icons.lock,
                   ),
                   SizedBox(
                     height: dh * 1,
                   ),
                   InputField(
-                      validator: (string) =>
-                          Util.emptyOrNullStringValidator(string),
-                      hintText: "Enter your password",
-                      textEditingController: _passwordController,
-                      label: "Password",
-                      icon: Icons.lock,
+                      validator: (string) => Util.confirmPasswordValidator(
+                          string, _passwordController.text),
+                      hintText: "********",
+                      textEditingController: _confirmController,
+                      label: "Re-type your password",
                       obscureText: true,
-                      textInputType: TextInputType.text)
+                      textInputType: TextInputType.text,
+                      icon: Icons.lock),
                 ],
               ),
             ),
           ),
           ElevatedButton.icon(
-            onPressed: () => _login(context),
+            onPressed: () => _signUp(context),
             icon: Icon(Icons.arrow_forward_ios_rounded),
             label: Text(
-              'LogIn',
+              'Sign Up',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: dh * 2.4),
             ),
             style: ButtonStyle(
@@ -81,16 +93,16 @@ class SignIn extends StatelessWidget {
           Column(
             children: [
               Text(
-                "Don't have an account?",
+                "Already have an account?",
                 style: TextStyle(fontSize: dh * 3),
               ),
               TextButton(
                   onPressed: () {
                     Navigator.of(context)
-                        .pushReplacementNamed(Constants.ROUTE_SIGN_UP);
+                        .pushReplacementNamed(Constants.ROUTE_SIGN_IN);
                   },
                   child: Text(
-                    'Sign Up!',
+                    'Log In',
                     style: TextStyle(fontSize: dh * 2.5, color: Colors.blue),
                   ))
             ],
@@ -100,10 +112,10 @@ class SignIn extends StatelessWidget {
     );
   }
 
-  _login(BuildContext context) {
+  _signUp(BuildContext context) {
     bool val = _formKey.currentState!.validate();
     if (val) {
-      Provider.of<UserProvider>(context).signInWithEmailPassword(
+      Provider.of<UserProvider>(context, listen: false).signUpWithEmailPassword(
           _emailController.text, _passwordController.text);
     }
   }

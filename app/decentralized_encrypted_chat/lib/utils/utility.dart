@@ -5,12 +5,22 @@ bool isNullOrEmpty(String? string) {
     return false;
 }
 
-Function(String) emptyOrNullStringValidator = (String value) {
+String? emptyOrNullStringValidator(String? value) {
   if (isNullOrEmpty(value)) {
     return "Cannot be empty!";
   } else
     return null;
-};
+}
+
+String? confirmPasswordValidator(String? value1, String? value2) {
+  final val = isNullOrEmpty(value1);
+  if (val)
+    return null;
+  else if (value1 != value2) {
+    return "Passwords do not match!";
+  } else
+    return null;
+}
 
 //
 // en.Encrypted encrypt(String plainText, String key) {

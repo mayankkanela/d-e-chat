@@ -1,5 +1,8 @@
+import 'package:decentralized_encrypted_chat/provider/user_provider.dart';
+import 'package:decentralized_encrypted_chat/utils/constants.dart';
 import 'package:decentralized_encrypted_chat/utils/screen_config.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Splash extends StatefulWidget {
   @override
@@ -19,6 +22,7 @@ class _SplashState extends State<Splash> {
     final dh = ScreenConfig.blockSizeVertical;
     final dw = ScreenConfig.blockSizeHorizontal;
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
         child: Text(
           "D-E-CHAT",
@@ -31,5 +35,12 @@ class _SplashState extends State<Splash> {
     );
   }
 
-  void _getUser() {}
+  void _getUser() async {
+    final isUserExist = await Provider.of<UserProvider>(context, listen: false)
+        .getCurrentUser();
+    if (!isUserExist)
+      await Navigator.of(context).pushReplacementNamed(Constants.ROUTE_SIGN_IN);
+    else {}
+    //todo: Home
+  }
 }
