@@ -1,3 +1,7 @@
+import 'dart:math';
+
+import 'constants.dart';
+
 bool isNullOrEmpty(String? string) {
   if (string == null || string.isEmpty)
     return true;
@@ -48,4 +52,50 @@ String? confirmPasswordValidator(String? value1, String? value2) {
 //   return null;
 //
 //   // encrypter.decrypt(encryptedText, iv: iv);
+// }
+String generate(int length) {
+  String pass = '';
+  Random random = new Random();
+  while (length > 0) {
+    int i = random.nextInt(Constants.VECTORS.length);
+    pass = pass +
+        Constants.VECTORS[i][random.nextInt(Constants.VECTORS[i].length)];
+    length--;
+  }
+  return pass;
+}
+
+// AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey> generateRSAkeyPair(
+//     SecureRandom secureRandom,
+//     {int bitLength = 2048}) {
+// Create an RSA key generator and initialize it
+
+// final keyGen = RSAKeyGenerator()
+//   ..init(ParametersWithRandom(
+//       RSAKeyGeneratorParameters(BigInt.parse('65537'), bitLength, 64),
+//       secureRandom));
+//
+// // Use the generator
+//
+// final pair = keyGen.generateKeyPair();
+//
+// // Cast the generated key pair into the RSA key types
+//
+// final myPublic = pair.publicKey as RSAPublicKey;
+// final myPrivate = pair.privateKey as RSAPrivateKey;
+//
+// return AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(myPublic, myPrivate);
+// }
+//
+// SecureRandom genSecureRandom() {
+//   final secureRandom = FortunaRandom();
+//
+//   final seedSource = Random.secure();
+//   final seeds = <int>[];
+//   for (int i = 0; i < 32; i++) {
+//     seeds.add(seedSource.nextInt(255));
+//   }
+//   secureRandom.seed(KeyParameter(Uint8List.fromList(seeds)));
+//
+//   return secureRandom;
 // }

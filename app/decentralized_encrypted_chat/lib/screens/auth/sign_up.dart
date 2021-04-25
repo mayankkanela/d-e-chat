@@ -3,14 +3,17 @@ import 'package:decentralized_encrypted_chat/utils/constants.dart';
 import 'package:decentralized_encrypted_chat/utils/screen_config.dart';
 import 'package:decentralized_encrypted_chat/utils/utility.dart' as Util;
 import 'package:decentralized_encrypted_chat/widgets/input_field.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class SignUp extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = new TextEditingController();
-  final _passwordController = new TextEditingController();
-  final _confirmController = new TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
+  final _pvtKeyController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     ScreenConfig().init(context);
@@ -75,6 +78,29 @@ class SignUp extends StatelessWidget {
                       obscureText: true,
                       textInputType: TextInputType.text,
                       icon: Icons.lock),
+                  SizedBox(
+                    height: dh * 1,
+                  ),
+                  InputField(
+                      validator: (string) =>
+                          Util.emptyOrNullStringValidator(string),
+                      hintText: "********",
+                      textEditingController: _pvtKeyController,
+                      label: "Enter a secret encryption key",
+                      obscureText: true,
+                      textInputType: TextInputType.text,
+                      icon: Icons.vpn_key),
+                  SizedBox(
+                    height: dh * 2,
+                  ),
+                  GestureDetector(
+                    onTap: () => _showDialog(context, dh),
+                    child: Text(
+                      "What is secret encryption key?",
+                      textAlign: TextAlign.start,
+                      style: TextStyle(color: Colors.blue),
+                    ),
+                  )
                 ],
               ),
             ),
@@ -112,11 +138,43 @@ class SignUp extends StatelessWidget {
     );
   }
 
+  _showDialog(BuildContext context, double dh) async {
+    await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(dh * 2))),
+            actionsPadding: EdgeInsets.zero,
+            backgroundColor: Colors.white,
+            title: Text(
+              "Secret Encryption Key",
+              style: TextStyle(color: Colors.black, fontSize: dh * 3),
+            ),
+            content: Text(
+              "This is a user set key which is used for encryption of messages is this application" +
+                  ", this key is not stored anywhere and the user should remember and keep the key safe.",
+              style: TextStyle(color: Colors.grey),
+              textAlign: TextAlign.justify,
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('OK'))
+            ],
+          );
+        });
+  }
+
   _signUp(BuildContext context) {
     bool val = _formKey.currentState!.validate();
     if (val) {
       Provider.of<UserProvider>(context, listen: false).signUpWithEmailPassword(
-          _emailController.text, _passwordController.text);
+          _emailController.text,
+          _passwordController.text,
+          _pvtKeyController.text);
     }
   }
 }

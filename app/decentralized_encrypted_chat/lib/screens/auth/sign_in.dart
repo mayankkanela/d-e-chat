@@ -8,8 +8,8 @@ import 'package:provider/provider.dart';
 
 class SignIn extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = new TextEditingController();
-  final _passwordController = new TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
