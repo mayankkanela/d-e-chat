@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import "package:asn1lib/asn1lib.dart";
+import 'package:flutter/cupertino.dart';
 import "package:pointycastle/api.dart";
 import 'package:pointycastle/asymmetric/api.dart';
 import 'package:pointycastle/asymmetric/rsa.dart';
@@ -135,27 +136,32 @@ class RsaKeyHelper {
     return rsaPrivateKey;
   }
 
-  encodePublicKeyToPem(RSAPublicKey publicKey) {
-    var algorithmSeq = new ASN1Sequence();
-    var algorithmAsn1Obj = new ASN1Object.fromBytes(Uint8List.fromList(
-        [0x6, 0x9, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0xd, 0x1, 0x1, 0x1]));
-    var paramsAsn1Obj =
-        new ASN1Object.fromBytes(Uint8List.fromList([0x5, 0x0]));
-    algorithmSeq.add(algorithmAsn1Obj);
-    algorithmSeq.add(paramsAsn1Obj);
+  String? encodePublicKeyToPem(RSAPublicKey publicKey) {
+    try {
+      var algorithmSeq = new ASN1Sequence();
+      var algorithmAsn1Obj = new ASN1Object.fromBytes(Uint8List.fromList(
+          [0x6, 0x9, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0xd, 0x1, 0x1, 0x1]));
+      var paramsAsn1Obj =
+          new ASN1Object.fromBytes(Uint8List.fromList([0x5, 0x0]));
+      algorithmSeq.add(algorithmAsn1Obj);
+      algorithmSeq.add(paramsAsn1Obj);
 
-    var publicKeySeq = new ASN1Sequence();
-    publicKeySeq.add(ASN1Integer(publicKey.modulus!));
-    publicKeySeq.add(ASN1Integer(publicKey.exponent!));
-    var publicKeySeqBitString =
-        new ASN1BitString(Uint8List.fromList(publicKeySeq.encodedBytes));
+      var publicKeySeq = new ASN1Sequence();
+      publicKeySeq.add(ASN1Integer(publicKey.modulus!));
+      publicKeySeq.add(ASN1Integer(publicKey.exponent!));
+      var publicKeySeqBitString =
+          new ASN1BitString(Uint8List.fromList(publicKeySeq.encodedBytes));
 
-    var topLevelSeq = new ASN1Sequence();
-    topLevelSeq.add(algorithmSeq);
-    topLevelSeq.add(publicKeySeqBitString);
-    var dataBase64 = base64.encode(topLevelSeq.encodedBytes);
+      var topLevelSeq = new ASN1Sequence();
+      topLevelSeq.add(algorithmSeq);
+      topLevelSeq.add(publicKeySeqBitString);
+      var dataBase64 = base64.encode(topLevelSeq.encodedBytes);
 
-    return "$dataBase64";
+      return "$dataBase64";
+    } catch (e) {
+      debugPrint("encodePublicKeyToPem \n ${e.toString()}");
+      return null;
+    }
   }
 
   encodePrivateKeyToPem(RSAPrivateKey privateKey) {

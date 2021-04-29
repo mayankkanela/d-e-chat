@@ -3,10 +3,12 @@ import 'package:flutter/cupertino.dart';
 
 FirebaseAuth _auth = FirebaseAuth.instance;
 
+/// Don't Use this in ui, only in viewModels
 Future<User?> getUser() async {
   return await _auth.currentUser;
 }
 
+/// Don't Use this in ui, only in viewModels
 Future<User?> signInEmailAndPassword(String email, String password) async {
   try {
     UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -20,6 +22,7 @@ Future<User?> signInEmailAndPassword(String email, String password) async {
   }
 }
 
+/// Don't Use this in ui, only in viewModels
 Future<User?> signUpWithEmailAndPassword(String email, String password) async {
   try {
     UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
