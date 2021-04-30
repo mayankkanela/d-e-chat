@@ -1,12 +1,13 @@
 import 'package:decentralized_encrypted_chat/provider/user_provider.dart';
 import 'package:decentralized_encrypted_chat/utils/constants.dart';
 import 'package:decentralized_encrypted_chat/utils/screen_config.dart';
-import 'package:decentralized_encrypted_chat/utils/utility.dart' as Util;
+import 'package:decentralized_encrypted_chat/utils/utility.dart' as util;
 import 'package:decentralized_encrypted_chat/widgets/input_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+//todo: show loading indicator on the signIn button after signUp.
 class SignUp extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -47,7 +48,7 @@ class SignUp extends StatelessWidget {
                 children: [
                   InputField(
                       validator: (string) =>
-                          Util.emptyOrNullStringValidator(string),
+                          util.emptyOrNullStringValidator(string),
                       hintText: "Ex: abc@gmail.com",
                       label: "Type your email",
                       textEditingController: _emailController,
@@ -58,7 +59,7 @@ class SignUp extends StatelessWidget {
                   ),
                   InputField(
                     validator: (string) =>
-                        Util.emptyOrNullStringValidator(string),
+                        util.emptyOrNullStringValidator(string),
                     hintText: "********",
                     textEditingController: _passwordController,
                     label: "Type your password",
@@ -70,7 +71,7 @@ class SignUp extends StatelessWidget {
                     height: dh * 1,
                   ),
                   InputField(
-                      validator: (string) => Util.confirmPasswordValidator(
+                      validator: (string) => util.confirmPasswordValidator(
                           string, _passwordController.text),
                       hintText: "********",
                       textEditingController: _confirmController,
@@ -83,7 +84,7 @@ class SignUp extends StatelessWidget {
                   ),
                   InputField(
                       validator: (string) =>
-                          Util.emptyOrNullStringValidator(string),
+                          util.emptyOrNullStringValidator(string),
                       hintText: "********",
                       textEditingController: _pvtKeyController,
                       label: "Enter a secret encryption key",
@@ -168,13 +169,18 @@ class SignUp extends StatelessWidget {
         });
   }
 
-  _signUp(BuildContext context) {
-    bool val = _formKey.currentState!.validate();
+  _signUp(BuildContext context) async {
+    final bool val = _formKey.currentState!.validate();
     if (val) {
-      Provider.of<UserProvider>(context, listen: false).signUpWithEmailPassword(
-          _emailController.text,
-          _passwordController.text,
-          _pvtKeyController.text);
+      final bool signedUp =
+          await Provider.of<UserProvider>(context, listen: false)
+              .signUpWithEmailPassword(_emailController.text,
+                  _passwordController.text, _pvtKeyController.text);
+      if (signedUp) {
+        util.pushNamedReplacement(context: context, path: Constants.ROUTE_HOME);
+      } else {
+        // todo: show some message regarding failing to signup
+      }
     }
   }
 }

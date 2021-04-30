@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
+
 import 'constants.dart';
 
 bool isNullOrEmpty(String? string) {
@@ -65,6 +67,15 @@ String generate(int length) {
   return pass;
 }
 
+Future<void> pushNamedReplacement(
+    {required BuildContext context, required String path}) async {
+  await Navigator.of(context).pushReplacementNamed(path);
+}
+
+Future<void> pushNamed(
+    {required BuildContext context, required String path}) async {
+  await Navigator.of(context).pushNamed(path);
+}
 // AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey> generateRSAkeyPair(
 //     SecureRandom secureRandom,
 //     {int bitLength = 2048}) {

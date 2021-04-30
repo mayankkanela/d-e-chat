@@ -1,6 +1,7 @@
 import 'package:decentralized_encrypted_chat/provider/user_provider.dart';
 import 'package:decentralized_encrypted_chat/utils/constants.dart';
 import 'package:decentralized_encrypted_chat/utils/screen_config.dart';
+import 'package:decentralized_encrypted_chat/utils/utility.dart' as util;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -36,11 +37,14 @@ class _SplashState extends State<Splash> {
   }
 
   void _getUser() async {
-    final isUserExist = await Provider.of<UserProvider>(context, listen: false)
+    final userExists = await Provider.of<UserProvider>(context, listen: false)
         .getCurrentUser();
-    if (!isUserExist)
-      await Navigator.of(context).pushReplacementNamed(Constants.ROUTE_SIGN_IN);
-    else {}
-    //todo: Home
+    if (!userExists)
+      await util.pushNamedReplacement(
+          context: context, path: Constants.ROUTE_SIGN_IN);
+    else {
+      await util.pushNamedReplacement(
+          context: context, path: Constants.ROUTE_HOME);
+    }
   }
 }

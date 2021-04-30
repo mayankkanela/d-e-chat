@@ -1,5 +1,6 @@
 import 'package:decentralized_encrypted_chat/screens/auth/sign_in.dart';
 import 'package:decentralized_encrypted_chat/screens/auth/sign_up.dart';
+import 'package:decentralized_encrypted_chat/screens/home.dart';
 import 'package:decentralized_encrypted_chat/screens/splash.dart';
 import 'package:decentralized_encrypted_chat/utils/constants.dart';
 import 'package:flutter/material.dart';
@@ -13,8 +14,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => Splash());
       case Constants.ROUTE_SIGN_IN:
         return MaterialPageRoute(builder: (_) => SignIn());
-      // case Constants.ROUTE_HOME:
-      //   return MaterialPageRoute(builder: (_) => Home());
+      case Constants.ROUTE_HOME:
+        return MaterialPageRoute(builder: (_) => Home());
     }
     return MaterialPageRoute(
         builder: (_) => Scaffold(

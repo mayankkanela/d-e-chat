@@ -1,11 +1,12 @@
 import 'package:decentralized_encrypted_chat/provider/user_provider.dart';
 import 'package:decentralized_encrypted_chat/utils/constants.dart';
 import 'package:decentralized_encrypted_chat/utils/screen_config.dart';
-import 'package:decentralized_encrypted_chat/utils/utility.dart' as Util;
+import 'package:decentralized_encrypted_chat/utils/utility.dart' as util;
 import 'package:decentralized_encrypted_chat/widgets/input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+//todo: show loading indicator on the signIn button after signIn.
 class SignIn extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -44,7 +45,7 @@ class SignIn extends StatelessWidget {
                 children: [
                   InputField(
                     validator: (string) =>
-                        Util.emptyOrNullStringValidator(string),
+                        util.emptyOrNullStringValidator(string),
                     hintText: "Enter your email",
                     label: "Email",
                     icon: Icons.email,
@@ -56,7 +57,7 @@ class SignIn extends StatelessWidget {
                   ),
                   InputField(
                       validator: (string) =>
-                          Util.emptyOrNullStringValidator(string),
+                          util.emptyOrNullStringValidator(string),
                       hintText: "Enter your password",
                       textEditingController: _passwordController,
                       label: "Password",
@@ -68,7 +69,7 @@ class SignIn extends StatelessWidget {
             ),
           ),
           ElevatedButton.icon(
-            onPressed: () => _login(context),
+            onPressed: () => _signIn(context),
             icon: Icon(Icons.arrow_forward_ios_rounded),
             label: Text(
               'LogIn',
@@ -100,11 +101,16 @@ class SignIn extends StatelessWidget {
     );
   }
 
-  _login(BuildContext context) {
+  _signIn(BuildContext context) async {
     bool val = _formKey.currentState!.validate();
     if (val) {
-      Provider.of<UserProvider>(context).signInWithEmailPassword(
-          _emailController.text, _passwordController.text);
+      final signedIn = await Provider.of<UserProvider>(context, listen: false)
+          .signInWithEmailPassword(
+              _emailController.text, _passwordController.text);
+      if (signedIn)
+        util.pushNamed(context: context, path: Constants.ROUTE_HOME);
+    } else {
+      // todo: show some message regarding failure to signIn.
     }
   }
 }

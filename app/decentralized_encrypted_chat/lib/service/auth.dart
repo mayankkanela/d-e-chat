@@ -3,12 +3,13 @@ import 'package:flutter/cupertino.dart';
 
 FirebaseAuth _auth = FirebaseAuth.instance;
 
-/// Don't Use this in ui, only in viewModels
+/// Don't Use this in ui, only in viewModels.
 Future<User?> getUser() async {
   return await _auth.currentUser;
 }
 
-/// Don't Use this in ui, only in viewModels
+/// Initial sign-in to check if user exists in firebase auth
+/// use signIn method in data.dart for final signIn.
 Future<User?> signInEmailAndPassword(String email, String password) async {
   try {
     UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -22,7 +23,7 @@ Future<User?> signInEmailAndPassword(String email, String password) async {
   }
 }
 
-/// Don't Use this in ui, only in viewModels
+/// Don't Use this in ui, only in viewModels.
 Future<User?> signUpWithEmailAndPassword(String email, String password) async {
   try {
     UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
