@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:decentralized_encrypted_chat/models/current_user.dart';
 import 'package:decentralized_encrypted_chat/service/data.dart' as data;
-import 'package:decentralized_encrypted_chat/utils/encrypt.dart' as encrypt;
-import 'package:decentralized_encrypted_chat/utils/rsa_pem_util.dart';
-import 'package:decentralized_encrypted_chat/utils/utility.dart' as util;
+import 'package:decentralized_encrypted_chat/utils/aes_helper.dart'
+    as aesHelper;
+import 'package:decentralized_encrypted_chat/utils/rsa_pem_helper.dart'
+    as rsaPemHelper;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pointycastle/asymmetric/api.dart';
@@ -14,6 +15,8 @@ class UserProvider with ChangeNotifier {
 
   /// Used to encrypt and decrypt and make sure not empty.
   String? _appKey;
+
+  String? get appKey => _appKey;
 
   CurrentUser? get currentUser => _currentUser;
 
@@ -64,12 +67,12 @@ class UserProvider with ChangeNotifier {
       String email, String password, String symKey) async {
     //App key, refer white paper
     final String? encSymAppKey =
-        encrypt.symmetricEncrypt(util.generate(8), symKey);
+        aesHelper.symmetricEncrypt(aesHelper.generateSymmetricKey(8), symKey);
 
     //asymmetric key gen
-    final keyPair = RsaKeyHelper().generateKeyPair();
+    final keyPair = rsaPemHelper.generateKeyPair();
     final String? asymPubKey =
-        RsaKeyHelper().encodePublicKeyToPem(keyPair.publicKey);
+        rsaPemHelper.encodePublicKeyToPem(keyPair.publicKey);
     final String? encAsymPvtKey = _getEncPvtKey(symKey, keyPair.privateKey);
 
     // getting data
@@ -96,7 +99,7 @@ class UserProvider with ChangeNotifier {
   }
 
   String? _getEncPvtKey(String symKey, RSAPrivateKey privateKey) {
-    final rsaPvtKey = RsaKeyHelper().encodePrivateKeyToPem(privateKey);
-    return encrypt.symmetricEncrypt(rsaPvtKey, symKey);
+    final rsaPvtKey = rsaPemHelper.encodePrivateKeyToPem(privateKey);
+    return aesHelper.symmetricEncrypt(rsaPvtKey, symKey);
   }
 }

@@ -35,6 +35,7 @@ Future<DocumentSnapshot?> completeSignUpGetUserDocument(
           .collection(Constants.USERS)
           .doc(user.uid)
           .get();
+
       debugPrint(result.data().toString());
       return result;
     } else {
