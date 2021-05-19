@@ -33,3 +33,7 @@ Future<void> pushNamed(
     {required BuildContext context, required String path}) async {
   await Navigator.of(context).pushNamed(path);
 }
+
+void pop({required BuildContext context}) async {
+  Navigator.of(context).pop();
+}

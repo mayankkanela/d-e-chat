@@ -7,7 +7,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'constants.dart';
 
-String? symmetricEncrypt(String message, String appKey) {
+String? encrypt(String message, String appKey) {
   try {
     final content = Utf8Encoder().convert(appKey);
     final md5 = crypto.md5;

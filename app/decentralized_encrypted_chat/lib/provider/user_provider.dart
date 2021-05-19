@@ -13,13 +13,26 @@ class UserProvider with ChangeNotifier {
   /// This is the user obj with all the keys.
   CurrentUser? _currentUser;
 
+  CurrentUser? get currentUser => _currentUser;
+
   /// Used to encrypt and decrypt and make sure not empty.
   String? _appKey;
 
+  /// get [_appKey]
   String? get appKey => _appKey;
 
-  CurrentUser? get currentUser => _currentUser;
+  bool decryptAppKey({required String key}) {
+    try {
+      final appKey = aesHelper.decrypt(_currentUser!.encSymAppKey, key);
+      this._appKey = appKey;
+      return true;
+    } catch (e) {
+      debugPrint("decryptAppKey ${e.toString()}");
+      return false;
+    }
+  }
 
+  /// Fetch current user from the firebase database to use it further.
   Future<bool> getCurrentUser() async {
     final DocumentSnapshot? documentSnapshot =
         await data.getCurrentUserDocument();
@@ -28,6 +41,7 @@ class UserProvider with ChangeNotifier {
         documentSnapshot.data() != null) {
       try {
         _currentUser = CurrentUser.fromJson(documentSnapshot.data()!);
+        debugPrint(_currentUser!.encSymAppKey);
       } catch (e) {
         debugPrint("provider/user-provider-getCurrentUser: \n ${e.toString()}");
         return false;
@@ -54,7 +68,7 @@ class UserProvider with ChangeNotifier {
         return false;
       }
 
-      if (currentUser != null) return true;
+      if (_currentUser != null) return true;
     }
 
     return false;
@@ -65,23 +79,22 @@ class UserProvider with ChangeNotifier {
   /// remember to set property listen = false.
   Future<bool> signUpWithEmailPassword(
       String email, String password, String symKey) async {
-    //App key, refer white paper
-    final String? encSymAppKey =
-        aesHelper.symmetricEncrypt(aesHelper.generateSymmetricKey(8), symKey);
+    //App key, to have consistent size of encrypting key thus
+    final String symAppKey = aesHelper.generateSymmetricKey(8);
+    final String? encSymAppKey = aesHelper.encrypt(symAppKey, symKey);
 
     //asymmetric key gen
     final keyPair = rsaPemHelper.generateKeyPair();
     final String? asymPubKey =
         rsaPemHelper.encodePublicKeyToPem(keyPair.publicKey);
     final String? encAsymPvtKey = _getEncPvtKey(symKey, keyPair.privateKey);
-
     // getting data
     if (encSymAppKey != null && encAsymPvtKey != null && asymPubKey != null) {
       final DocumentSnapshot? documentSnapshot =
           await data.completeSignUpGetUserDocument(
               email: email,
-              password: password,
               encSymAppKey: encSymAppKey,
+              password: password,
               encAsymPvtKey: encAsymPvtKey,
               asymPubKey: asymPubKey);
       if (documentSnapshot != null && documentSnapshot.exists) {
@@ -100,6 +113,6 @@ class UserProvider with ChangeNotifier {
 
   String? _getEncPvtKey(String symKey, RSAPrivateKey privateKey) {
     final rsaPvtKey = rsaPemHelper.encodePrivateKeyToPem(privateKey);
-    return aesHelper.symmetricEncrypt(rsaPvtKey, symKey);
+    return aesHelper.encrypt(rsaPvtKey, symKey);
   }
 }

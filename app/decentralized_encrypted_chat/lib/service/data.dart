@@ -7,12 +7,13 @@ FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
 
 /// Method to sign up user in firebase auth,then add the user data to a document
 /// in firestore and returns doc snapshot with user data.
-Future<DocumentSnapshot?> completeSignUpGetUserDocument(
-    {required String email,
-    required String password,
-    required String encSymAppKey,
-    required String encAsymPvtKey,
-    required String asymPubKey}) async {
+Future<DocumentSnapshot?> completeSignUpGetUserDocument({
+  required String email,
+  required String password,
+  required String encAsymPvtKey,
+  required String asymPubKey,
+  required String encSymAppKey,
+}) async {
   try {
     //firebase auth
     final user = await auth.signUpWithEmailAndPassword(email, password);
@@ -21,9 +22,9 @@ Future<DocumentSnapshot?> completeSignUpGetUserDocument(
       final Map<String, dynamic> data = {
         "userId": user.uid,
         "email": email,
-        "encSymAppKey": encSymAppKey,
         "encAsymPvtKey": encAsymPvtKey,
-        "asymPubKey": asymPubKey
+        "asymPubKey": asymPubKey,
+        "encSymAppKey": encSymAppKey,
       };
 
       await _firebaseFirestore
