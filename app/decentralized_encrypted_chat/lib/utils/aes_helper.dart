@@ -1,9 +1,9 @@
 import 'dart:convert';
+import 'dart:developer' as dev;
 import 'dart:math';
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:encrypt/encrypt.dart' as en;
-import 'package:flutter/cupertino.dart';
 
 import 'constants.dart';
 
@@ -18,7 +18,7 @@ String? encrypt(String message, String appKey) {
     final encrypted = encrypt.encrypt(message, iv: iv);
     return encrypted.base64;
   } catch (e) {
-    debugPrint("encrypt ${e.toString()}");
+    dev.log("encrypt ${e.toString()}");
     return null;
   }
 }
@@ -35,7 +35,7 @@ String? decrypt(String encryptedText, String key) {
     final decrypted = encrypter.decrypt64(encryptedText, iv: iv);
     return decrypted;
   } catch (e) {
-    debugPrint("aes_helper.dart-encrypt ${e.toString()}");
+    dev.log("aes_helper.dart-encrypt ${e.toString()}");
     return null;
   }
 }

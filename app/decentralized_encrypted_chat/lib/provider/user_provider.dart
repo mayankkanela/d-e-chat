@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:decentralized_encrypted_chat/models/current_user.dart';
 import 'package:decentralized_encrypted_chat/service/data.dart' as data;
@@ -11,9 +13,9 @@ import 'package:pointycastle/asymmetric/api.dart';
 
 class UserProvider with ChangeNotifier {
   /// This is the user obj with all the keys.
-  CurrentUser? _currentUser;
+  late final CurrentUser _currentUser;
 
-  CurrentUser? get currentUser => _currentUser;
+  CurrentUser get currentUser => _currentUser;
 
   /// Used to encrypt and decrypt and make sure not empty.
   String? _appKey;
@@ -23,11 +25,12 @@ class UserProvider with ChangeNotifier {
 
   bool decryptAppKey({required String key}) {
     try {
-      final appKey = aesHelper.decrypt(_currentUser!.encSymAppKey, key);
-      this._appKey = appKey;
+      final appKey = aesHelper.decrypt(_currentUser.encSymAppKey, key);
+      this._appKey = appKey!;
+      log("decryptAppKey: $_appKey");
       return true;
     } catch (e) {
-      debugPrint("decryptAppKey ${e.toString()}");
+      log("decryptAppKey ${e.toString()}");
       return false;
     }
   }
@@ -41,12 +44,12 @@ class UserProvider with ChangeNotifier {
         documentSnapshot.data() != null) {
       try {
         _currentUser = CurrentUser.fromJson(documentSnapshot.data()!);
-        debugPrint(_currentUser!.encSymAppKey);
+        log(_currentUser.encSymAppKey);
+        return true;
       } catch (e) {
-        debugPrint("provider/user-provider-getCurrentUser: \n ${e.toString()}");
+        log("provider/user-provider-getCurrentUser: \n ${e.toString()}");
         return false;
       }
-      if (_currentUser != null) return true;
     }
     return false;
   }
@@ -62,13 +65,11 @@ class UserProvider with ChangeNotifier {
         documentSnapshot.data() != null) {
       try {
         _currentUser = CurrentUser.fromJson(documentSnapshot.data()!);
+        return true;
       } catch (e) {
-        debugPrint(
-            "provider/user-provider-signUpWithEmailPassword: \n ${e.toString()}");
+        log("provider/user-provider-signUpWithEmailPassword: \n ${e.toString()}");
         return false;
       }
-
-      if (_currentUser != null) return true;
     }
 
     return false;
@@ -87,7 +88,7 @@ class UserProvider with ChangeNotifier {
     final keyPair = rsaPemHelper.generateKeyPair();
     final String? asymPubKey =
         rsaPemHelper.encodePublicKeyToPem(keyPair.publicKey);
-    final String? encAsymPvtKey = _getEncPvtKey(symKey, keyPair.privateKey);
+    final String? encAsymPvtKey = _getEncPvtKey(symAppKey, keyPair.privateKey);
     // getting data
     if (encSymAppKey != null && encAsymPvtKey != null && asymPubKey != null) {
       final DocumentSnapshot? documentSnapshot =
@@ -100,13 +101,12 @@ class UserProvider with ChangeNotifier {
       if (documentSnapshot != null && documentSnapshot.exists) {
         try {
           _currentUser = CurrentUser.fromJson(documentSnapshot.data()!);
+          return true;
         } catch (e) {
-          debugPrint(
-              "user-provider-signUpWithEmailPassword: \n ${e.toString()}");
+          log("user-provider-signUpWithEmailPassword: \n ${e.toString()}");
           return false;
         }
       }
-      if (_currentUser != null) return true;
     }
     return false;
   }

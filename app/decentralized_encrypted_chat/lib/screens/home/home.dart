@@ -1,4 +1,8 @@
+import 'dart:developer';
+
+import 'package:decentralized_encrypted_chat/models/chat.dart';
 import 'package:decentralized_encrypted_chat/provider/user_provider.dart';
+import 'package:decentralized_encrypted_chat/screens/home/chat_model.dart';
 import 'package:decentralized_encrypted_chat/utils/screen_config.dart';
 import 'package:decentralized_encrypted_chat/utils/utility.dart' as utils;
 import 'package:decentralized_encrypted_chat/widgets/input_field.dart';
@@ -13,10 +17,14 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final TextEditingController _appKeyTEC = TextEditingController();
+  final TextEditingController _emailTEC = TextEditingController();
+
+  late bool _loadData;
 
   @override
   void initState() {
     super.initState();
+    _loadData = false;
     SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(statusBarColor: Colors.transparent));
     WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +36,8 @@ class _HomeState extends State<Home> {
   @override
   void dispose() {
     _appKeyTEC.dispose();
+    _emailTEC.dispose();
+    ChatModel.dispose();
     super.dispose();
   }
 
@@ -38,10 +48,10 @@ class _HomeState extends State<Home> {
     final dw = ScreenConfig.blockSizeHorizontal;
     return Scaffold(
       appBar: _buildAppBar(),
-      body: _buildBody(),
+      body: _loadData == true ? _buildBody() : Text("Key Missing"),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // todo: add new user to chat with
+          _addUser(dw, dh);
         },
         backgroundColor: Colors.black,
         child: Icon(
@@ -53,8 +63,25 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildBody() {
-    return Center(
-      child: Text('Home'),
+    ChatModel.getAllChats(
+        Provider.of<UserProvider>(context, listen: false).currentUser.email);
+    return StreamProvider<List<Chat?>?>(
+      create: (_) => ChatModel.stream,
+      initialData: null,
+      child: Builder(
+        builder: (context) {
+          final data = context.watch<List<Chat?>?>();
+          if (data != null && data.length > 0) {
+            return ListView.builder(
+                itemCount: data.length,
+                itemBuilder: (_, i) => Text("${data[i]?.members[1]}"));
+          } else
+            return Text("No Chats");
+        },
+      ),
+      catchError: (e, fun) {
+        log("${e.toString()}");
+      },
     );
   }
 
@@ -123,6 +150,9 @@ class _HomeState extends State<Home> {
 
   _getData() async {
     // todo: get chat data
+    setState(() {
+      _loadData = true;
+    });
   }
 
   void _getKey() {
@@ -133,6 +163,46 @@ class _HomeState extends State<Home> {
         _getData();
         utils.pop(context: context);
       }
+    }
+  }
+
+  void _addUser(double dw, double dh) async {
+    await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(dh * 2))),
+            actionsPadding: EdgeInsets.zero,
+            backgroundColor: Colors.white,
+            title: Text(
+              "Enter email to add a contact.",
+              style: TextStyle(color: Colors.black, fontSize: dh * 3),
+            ),
+            content: InputField(
+                validator: (string) => utils.emptyOrNullStringValidator(string),
+                hintText: "Ex: abc@gmail.com",
+                label: "Type your email",
+                textEditingController: _emailTEC,
+                textInputType: TextInputType.emailAddress,
+                icon: Icons.email),
+            actions: [
+              TextButton(onPressed: () => _addNewUser(), child: Text('DONE'))
+            ],
+          );
+        });
+  }
+
+  void _addNewUser() {
+    try {
+      ChatModel.addNewContact(
+              currentUser:
+                  Provider.of<UserProvider>(context, listen: false).currentUser,
+              contactEmail: _emailTEC.text,
+              appKey: Provider.of<UserProvider>(context, listen: false).appKey!)
+          .then((value) => utils.pop(context: context));
+    } catch (e) {
+      log("addnewuser: ${e.toString()}");
     }
   }
 }

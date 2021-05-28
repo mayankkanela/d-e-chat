@@ -155,7 +155,7 @@ String? encodePublicKeyToPem(RSAPublicKey publicKey) {
     topLevelSeq.add(publicKeySeqBitString);
     var dataBase64 = base64.encode(topLevelSeq.encodedBytes);
 
-    return "$dataBase64";
+    return dataBase64;
   } catch (e) {
     debugPrint("encodePublicKeyToPem \n ${e.toString()}");
     return null;
@@ -203,5 +203,5 @@ encodePrivateKeyToPem(RSAPrivateKey privateKey) {
   topLevelSeq.add(publicKeySeqOctetString);
   var dataBase64 = base64.encode(topLevelSeq.encodedBytes);
 
-  return "$dataBase64";
+  return dataBase64;
 }

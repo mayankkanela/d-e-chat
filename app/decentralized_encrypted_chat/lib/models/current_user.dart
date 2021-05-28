@@ -1,9 +1,15 @@
 class CurrentUser {
+  static const EMAIL = "email";
+  static const USER_ID = "userId";
+  static const ENC_ASYM_PVT_KEY = "encAsymPvtKey";
+  static const ENC_SYM_APP_KEY = "encSymAppKey";
+  static const ASYM_PUB_KEY = "asymPubKey";
+
   final String email;
   final String userId;
   final String encAsymPvtKey;
-  final String asymPubKey;
   final String encSymAppKey;
+  final String asymPubKey;
 
   const CurrentUser({
     required this.email,
@@ -15,11 +21,11 @@ class CurrentUser {
 
   factory CurrentUser.fromJson(Map<String, dynamic> json) {
     return CurrentUser(
-      email: json["email"],
-      encSymAppKey: json["encSymAppKey"],
-      userId: json["userId"],
-      encAsymPvtKey: json["encAsymPvtKey"],
-      asymPubKey: json["asymPubKey"],
+      email: json[EMAIL],
+      encSymAppKey: json[ENC_SYM_APP_KEY],
+      userId: json[USER_ID],
+      encAsymPvtKey: json[ENC_ASYM_PVT_KEY],
+      asymPubKey: json[ASYM_PUB_KEY],
     );
   }
 }

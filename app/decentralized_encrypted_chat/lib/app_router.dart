@@ -1,6 +1,6 @@
 import 'package:decentralized_encrypted_chat/screens/auth/sign_in.dart';
 import 'package:decentralized_encrypted_chat/screens/auth/sign_up.dart';
-import 'package:decentralized_encrypted_chat/screens/home.dart';
+import 'package:decentralized_encrypted_chat/screens/home/home.dart';
 import 'package:decentralized_encrypted_chat/screens/splash.dart';
 import 'package:decentralized_encrypted_chat/utils/constants.dart';
 import 'package:flutter/material.dart';

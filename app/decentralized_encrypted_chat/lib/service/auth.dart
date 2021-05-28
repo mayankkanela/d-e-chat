@@ -1,5 +1,6 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 
 FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -17,8 +18,8 @@ Future<User?> signInEmailAndPassword(String email, String password) async {
     User? user = userCredential.user;
     return user;
   } catch (e) {
-    debugPrint("auth:");
-    debugPrint(e.toString());
+    log("auth:");
+    log(e.toString());
     return null;
   }
 }
@@ -28,11 +29,11 @@ Future<User?> signUpWithEmailAndPassword(String email, String password) async {
   try {
     UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email, password: password);
-    debugPrint(userCredential.user.toString());
+    log(userCredential.user.toString());
     return userCredential.user;
   } catch (e) {
-    debugPrint("auth:");
-    debugPrint(e.toString());
+    log("auth:");
+    log(e.toString());
     return null;
   }
 }

@@ -8,11 +8,17 @@ class Constants {
   /// ROUTE: /home
   static const ROUTE_HOME = "/home";
 
-  /// Collection id: users
+  /// Collection id: users, contains all user related data.
   static const USERS = "users";
 
-  /// Collection id: chats
+  /// Collection id: chats, contains all chat related data.
   static const CHATS = "chats";
+
+  /// Collection id: sessions, sub-collection to document inside chats.
+  static const SESSIONS = "sessions";
+
+  /// Collection id: messages, sub-collection to document inside sessions.
+  static const MESSAGES = "messages";
 
   /// Used for generating random characters
   static const VECTORS = [
