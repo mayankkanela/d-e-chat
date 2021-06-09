@@ -8,6 +8,9 @@ class Constants {
   /// ROUTE: /home
   static const ROUTE_HOME = "/home";
 
+  /// ROUTE: /chatScreen
+  static const ROUTE_CHAT_SCREEN = "/chatScreen";
+
   /// Collection id: users, contains all user related data.
   static const USERS = "users";
 

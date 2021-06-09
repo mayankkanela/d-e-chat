@@ -110,7 +110,6 @@ Stream<QuerySnapshot> getAllChatsQuerySnapShot(String email) {
 
 /// Function to add a new contact, a document is added to the chats
 /// collection against the current user document.
-
 Future<bool> addNewContactDocumentSnapshot(
     {required CurrentUser currentUser,
     required String contactEmail,
@@ -134,15 +133,57 @@ Future<bool> addNewContactDocumentSnapshot(
     data[Chat.ENC_SYM_KEY_M0] = encSymKeyP0;
     data[Chat.ENC_SYM_KEY_M1] = encSymKeyP1;
     data[Chat.M1_INIT] = true;
-    _firebaseFirestore
+    data[Chat.LAST_MESSAGE] = "";
+    await _firebaseFirestore
         .collection(Constants.CHATS)
-        .doc()
-        .set(data)
+        .add(data)
         .then((value) => log("Contact added"));
     return true;
   } catch (e, stacktrace) {
     log("${e.toString()}");
     log("${stacktrace.toString()}");
     return false;
+  }
+}
+
+/// Get all the messages for a particular document id and returns
+/// a [ Stream ] of type [QuerySnapShot]
+Stream<QuerySnapshot> getAllMessagesQuerySnapShot(String docId) {
+  final Stream<QuerySnapshot> stream = _firebaseFirestore
+      .collection(Constants.CHATS)
+      .doc(docId)
+      .collection(Constants.MESSAGES)
+      .orderBy("timestamp", descending: true)
+      .snapshots();
+  return stream;
+}
+
+/// Send message by adding a new document inside MESSAGES sub-collection
+/// of CHATS.
+Future<bool> sendMessage(Map<String, dynamic> data, String docId) async {
+  try {
+    await _firebaseFirestore
+        .collection(Constants.CHATS)
+        .doc(docId)
+        .collection(Constants.MESSAGES)
+        .add(data)
+        .then((value) => log("${value.path}"))
+        .timeout(Duration(seconds: 10));
+    return true;
+  } catch (e, st) {
+    log("${e.toString()} \n ${st.toString()}");
+    return false;
+  }
+}
+
+/// Set the last message sent.
+Future<void> setLastMessage(String message, documentId) async {
+  try {
+    await _firebaseFirestore
+        .collection(Constants.CHATS)
+        .doc(documentId)
+        .update({Chat.LAST_MESSAGE: message}).then((value) => log("done"));
+  } catch (e, st) {
+    log("$e \n $st");
   }
 }

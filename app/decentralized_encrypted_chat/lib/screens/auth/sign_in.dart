@@ -57,7 +57,7 @@ class SignIn extends StatelessWidget {
                   ),
                   InputField(
                       validator: (string) =>
-                          util.emptyOrNullStringValidator(string),
+                          util.passwordLengthValidator(string),
                       hintText: "Enter your password",
                       textEditingController: _passwordController,
                       label: "Password",

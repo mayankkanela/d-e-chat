@@ -58,8 +58,7 @@ class SignUp extends StatelessWidget {
                     height: dh * 1,
                   ),
                   InputField(
-                    validator: (string) =>
-                        util.emptyOrNullStringValidator(string),
+                    validator: (string) => util.passwordLengthValidator(string),
                     hintText: "********",
                     textEditingController: _passwordController,
                     label: "Type your password",

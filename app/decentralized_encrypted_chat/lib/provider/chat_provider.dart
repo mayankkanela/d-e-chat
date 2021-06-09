@@ -5,29 +5,20 @@ import 'package:decentralized_encrypted_chat/models/chat.dart';
 import 'package:decentralized_encrypted_chat/models/current_user.dart';
 import 'package:decentralized_encrypted_chat/service/data.dart' as data;
 
-class ChatModel {
-  static final _streamController = StreamController<List<Chat>?>();
+class ChatProvider {
+  ChatProvider({required String email}) {
+    _getAllChats(email);
+  }
+  late final _streamController = StreamController<List<Chat>>();
 
-  static get stream => _streamController.stream;
+  get stream => _streamController.stream;
 
-  static void getAllChats(String emailId) {
-    // data.getAllChatsQuerySnapShot(userId).listen((event) {
-    //   log("data changes: ${event.docChanges.length}");
-    //   if (_chats.isEmpty) {
-    //     _chats = event.docs.map((e) => Chat.fromJSON(e.data())).toList();
-    //   }
-    //   else{
-    //     event.docChanges.forEach((element) {
-    //       if(element.doc.data() != null){
-    //         _chats[element.oldIndex] = Chat.fromJSON(element.doc.data()!);}
-    //     });
-    //   }
-    // });
+  void _getAllChats(String emailId) {
     data.getAllChatsQuerySnapShot(emailId).listen((event) {
       _streamController
-          .add(event.docs.map((e) => Chat.fromJSON(e.data())).toList());
+          .add(event.docs.map((e) => Chat.fromJSON(e.data(), e.id)).toList());
     }).onError((e, st) {
-      log("${e.toString()} \n ${st.toString()}");
+      log("_getAllChats: ${e.toString()} \n ${st.toString()}");
     });
   }
 
@@ -48,7 +39,7 @@ class ChatModel {
     }
   }
 
-  static void dispose() {
+  void dispose() {
     _streamController.close();
   }
 }

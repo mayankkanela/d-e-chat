@@ -14,6 +14,15 @@ String? emptyOrNullStringValidator(String? value) {
     return null;
 }
 
+String? passwordLengthValidator(String? value) {
+  if (isNullOrEmpty(value)) {
+    return "Cannot be empty!";
+  } else if (value != null && value.length < 8) {
+    return "Password length too short! (Min 8 char)";
+  } else
+    return null;
+}
+
 String? confirmPasswordValidator(String? value1, String? value2) {
   final val = isNullOrEmpty(value1);
   if (val)

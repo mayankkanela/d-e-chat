@@ -1,8 +1,9 @@
 import 'dart:developer';
 
 import 'package:decentralized_encrypted_chat/models/chat.dart';
+import 'package:decentralized_encrypted_chat/provider/chat_provider.dart';
 import 'package:decentralized_encrypted_chat/provider/user_provider.dart';
-import 'package:decentralized_encrypted_chat/screens/home/chat_model.dart';
+import 'package:decentralized_encrypted_chat/screens/home/chat_item.dart';
 import 'package:decentralized_encrypted_chat/utils/screen_config.dart';
 import 'package:decentralized_encrypted_chat/utils/utility.dart' as utils;
 import 'package:decentralized_encrypted_chat/widgets/input_field.dart';
@@ -37,7 +38,7 @@ class _HomeState extends State<Home> {
   void dispose() {
     _appKeyTEC.dispose();
     _emailTEC.dispose();
-    ChatModel.dispose();
+    context.watch<UserProvider>().dispose();
     super.dispose();
   }
 
@@ -48,7 +49,7 @@ class _HomeState extends State<Home> {
     final dw = ScreenConfig.blockSizeHorizontal;
     return Scaffold(
       appBar: _buildAppBar(),
-      body: _loadData == true ? _buildBody() : Text("Key Missing"),
+      body: _loadData == true ? _buildBody(dh, dw) : Text("Key Missing"),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _addUser(dw, dh);
@@ -62,26 +63,40 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _buildBody() {
-    ChatModel.getAllChats(
-        Provider.of<UserProvider>(context, listen: false).currentUser.email);
-    return StreamProvider<List<Chat?>?>(
-      create: (_) => ChatModel.stream,
-      initialData: null,
+  Widget _buildBody(double dh, double dw) {
+    return Provider<ChatProvider>(
+      create: (_) => ChatProvider(
+          email: Provider.of<UserProvider>(context, listen: false)
+              .currentUser
+              .email),
       child: Builder(
-        builder: (context) {
-          final data = context.watch<List<Chat?>?>();
-          if (data != null && data.length > 0) {
-            return ListView.builder(
-                itemCount: data.length,
-                itemBuilder: (_, i) => Text("${data[i]?.members[1]}"));
-          } else
-            return Text("No Chats");
+        builder: (ctx) {
+          return StreamProvider<List<Chat>?>(
+            create: (_) => ctx.watch<ChatProvider>().stream,
+            initialData: null,
+            child: Builder(
+              builder: (context) {
+                final data = context.watch<List<Chat>?>();
+                if (data != null && data.length > 0) {
+                  return ListView.builder(
+                      itemCount: data.length,
+                      itemBuilder: (_, i) => ChatItem(
+                          dh: dh,
+                          dw: dw,
+                          data: data[i],
+                          currentUser:
+                              Provider.of<UserProvider>(context, listen: false)
+                                  .currentUser));
+                } else
+                  return Center(child: Text("No Chats"));
+              },
+            ),
+            catchError: (e, fun) {
+              log("${e.toString()}");
+            },
+          );
         },
       ),
-      catchError: (e, fun) {
-        log("${e.toString()}");
-      },
     );
   }
 
@@ -195,7 +210,7 @@ class _HomeState extends State<Home> {
 
   void _addNewUser() {
     try {
-      ChatModel.addNewContact(
+      ChatProvider.addNewContact(
               currentUser:
                   Provider.of<UserProvider>(context, listen: false).currentUser,
               contactEmail: _emailTEC.text,
