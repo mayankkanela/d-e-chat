@@ -1,21 +1,23 @@
 import 'package:decentralized_encrypted_chat/models/chat.dart';
 import 'package:decentralized_encrypted_chat/models/current_user.dart';
 import 'package:decentralized_encrypted_chat/models/message.dart';
+import 'package:decentralized_encrypted_chat/provider/chat_provider.dart';
 import 'package:decentralized_encrypted_chat/provider/message_provider.dart';
-import 'package:decentralized_encrypted_chat/screens/chat/message_item.dart';
+import 'package:decentralized_encrypted_chat/screens/chat/group/message_item.dart';
 import 'package:decentralized_encrypted_chat/utils/screen_config.dart';
 import 'package:decentralized_encrypted_chat/utils/utility.dart' as utils;
+import 'package:decentralized_encrypted_chat/widgets/input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-class ChatScreen extends StatefulWidget {
+class GroupChatScreen extends StatefulWidget {
   final CurrentUser currentUser;
   final Chat chat;
   final String? chatKey;
 
-  const ChatScreen(
+  const GroupChatScreen(
       {Key? key,
       required this.currentUser,
       required this.chat,
@@ -23,23 +25,26 @@ class ChatScreen extends StatefulWidget {
       : super(key: key);
 
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  _GroupChatScreenState createState() => _GroupChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _GroupChatScreenState extends State<GroupChatScreen> {
   late final TextEditingController _msgTEC;
   late final String? _chatKey;
+  late final TextEditingController _emailTEC;
 
   @override
   void initState() {
     super.initState();
     _msgTEC = TextEditingController();
+    _emailTEC = TextEditingController();
     _chatKey = widget.chatKey;
   }
 
   @override
   void dispose() {
     _msgTEC.dispose();
+    _emailTEC.dispose();
     super.dispose();
   }
 
@@ -94,7 +99,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   itemCount: data.length,
                                   physics: ClampingScrollPhysics(),
                                   itemBuilder: (_, i) {
-                                    return MessageItem(
+                                    return GroupMessageItem(
                                       chatKey: _chatKey,
                                       message: data[data.length - 1 - i],
                                       dw: dw,
@@ -156,8 +161,13 @@ class _ChatScreenState extends State<ChatScreen> {
     return AppBar(
       backgroundColor: Colors.black,
       brightness: Brightness.dark,
+      actions: [
+        if (widget.chat.status != Status.unprivileged)
+          IconButton(
+              onPressed: () => _addMemberDialog(dw, dh), icon: Icon(Icons.add))
+      ],
       title: Text(
-        widget.chat.getReceiverId(widget.currentUser.email),
+        widget.chat.groupName ?? "NaN",
         style: TextStyle(color: Colors.white),
       ),
     );
@@ -173,5 +183,47 @@ class _ChatScreenState extends State<ChatScreen> {
               documentId: widget.chat.docId);
       if (res) _msgTEC.clear();
     }
+  }
+
+  _addMemberDialog(double dw, double dh) async {
+    if (widget.chat.status != Status.unprivileged)
+      await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return StatefulBuilder(
+              builder: (context, setState) => AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(dh * 2))),
+                actionsPadding: EdgeInsets.zero,
+                backgroundColor: Colors.white,
+                title: Text(
+                  "Enter email to add a member.",
+                  style: TextStyle(color: Colors.black, fontSize: dh * 3),
+                ),
+                content: InputField(
+                    validator: (string) =>
+                        utils.emptyOrNullStringValidator(string),
+                    hintText: "Ex: abc@gmail.com",
+                    label: "Type email here",
+                    textEditingController: _emailTEC,
+                    textInputType: TextInputType.emailAddress,
+                    icon: Icons.email),
+                actions: [
+                  TextButton(onPressed: () => _addMember(), child: Text('DONE'))
+                ],
+              ),
+            );
+          });
+  }
+
+  Future<void> _addMember() async {
+    if (widget.chat.status != Status.unprivileged)
+      await ChatProvider.addNewGroupMember(
+              chat: widget.chat,
+              documentId: widget.chat.docId,
+              chatKey: widget.chatKey!,
+              contactEmail: _emailTEC.text)
+          .then((value) => utils.pop(context: context))
+          .then((value) => _emailTEC.clear());
   }
 }

@@ -1,6 +1,7 @@
 import 'package:decentralized_encrypted_chat/screens/auth/sign_in.dart';
 import 'package:decentralized_encrypted_chat/screens/auth/sign_up.dart';
-import 'package:decentralized_encrypted_chat/screens/chat/chat_screen.dart';
+import 'package:decentralized_encrypted_chat/screens/chat/group/group_chat_screen.dart';
+import 'package:decentralized_encrypted_chat/screens/chat/onetoone/chat_screen.dart';
 import 'package:decentralized_encrypted_chat/screens/chat/screen_args_messages.dart';
 import 'package:decentralized_encrypted_chat/screens/home/home.dart';
 import 'package:decentralized_encrypted_chat/screens/splash.dart';
@@ -29,6 +30,18 @@ class AppRouter {
 
           return MaterialPageRoute(
               builder: (_) => ChatScreen(
+                    currentUser: screenArgsMessages.currentUser,
+                    chat: screenArgsMessages.chatData,
+                    chatKey: screenArgsMessages.chatKey,
+                  ));
+        }
+      case Constants.ROUTE_GROUP_CHAT_SCREEN:
+        {
+          final ScreenArgsMessages screenArgsMessages =
+              settings.arguments as ScreenArgsMessages;
+
+          return MaterialPageRoute(
+              builder: (_) => GroupChatScreen(
                     currentUser: screenArgsMessages.currentUser,
                     chat: screenArgsMessages.chatData,
                     chatKey: screenArgsMessages.chatKey,

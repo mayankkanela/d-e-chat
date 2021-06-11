@@ -5,50 +5,58 @@ import 'package:decentralized_encrypted_chat/utils/aes_helper.dart'
 import 'package:decentralized_encrypted_chat/utils/rsa_pem_helper.dart'
     as rsaHelper;
 
+enum Status { initiator, admin, unprivileged }
+
 class Chat {
-  static const ENC_SYM_KEY_M0 = "encSymKeyP0";
-  static const ENC_SYM_KEY_M1 = "encSymKeyP1";
-  static const M1_INIT = "p1Init";
   static const MEMBERS = "members";
   static const LAST_MESSAGE = "lastMessage";
+  static const GROUP_NAME = "groupName";
+  static const KEYS = "keys";
+  static const STATUSES = "status";
 
   final List<String> members;
-  final String encSymKeyM0;
-  final String encSymKeyM1;
-  final bool m1Init;
+  final Status status;
+  final Map<String, String> keys;
+  final Map<String, int> statuses;
+  final String encKey;
+  final String? groupName;
   final String lastMessage;
   final String docId;
 
-  Chat({
-    required this.encSymKeyM0,
-    required this.encSymKeyM1,
-    required this.m1Init,
-    required this.members,
-    required this.lastMessage,
-    required this.docId,
-  });
+  Chat(
+      {required this.encKey,
+      required this.groupName,
+      required this.members,
+      required this.status,
+      required this.lastMessage,
+      required this.docId,
+      required this.statuses,
+      required this.keys});
 
-  factory Chat.fromJSON(Map<String, dynamic> json, String docId) {
-    // todo: parse messages
+  factory Chat.fromJSON(
+      Map<String, dynamic> json, String docId, String cEmail) {
     final List<String> members = List.castFrom(json[MEMBERS]);
+    final Map<String, String> keys = Map<String, String>.from(json[KEYS]);
+    final Map<String, int> statuses = Map<String, int>.from(json[STATUSES]);
+
     return Chat(
-        m1Init: json[M1_INIT],
         members: members,
-        encSymKeyM0: json[ENC_SYM_KEY_M0],
-        encSymKeyM1: json[ENC_SYM_KEY_M1],
         lastMessage: json[LAST_MESSAGE],
-        docId: docId);
+        docId: docId,
+        statuses: statuses,
+        keys: keys,
+        groupName: json[GROUP_NAME],
+        encKey: keys[cEmail]!,
+        status: Status.values[statuses[cEmail]!]);
   }
 
   String getReceiverId(String currentUserEmail) {
-    return currentUserEmail == this.members[0]
-        ? this.members[1]
-        : this.members[0];
+    return currentUserEmail == members[0] ? members[1] : members[0];
   }
 
   String getDecryptLastMessage(String? chatKey) {
     try {
-      return aesHelper.decrypt(this.lastMessage, chatKey!)!;
+      return aesHelper.decrypt(lastMessage, chatKey!)!;
     } catch (e, st) {
       log("${e.toString()} \n ${st.toString()}");
       return "CLEAR_CACHE_RESTART";
@@ -60,12 +68,12 @@ class Chat {
       required String? appKey,
       required String encAsymPvtKey}) {
     try {
-      if (currentUserEmail == this.members[0]) {
-        return aesHelper.decrypt(this.encSymKeyM0, appKey!);
+      if (status == Status.initiator) {
+        return aesHelper.decrypt(encKey, appKey!);
       } else {
         final asymPvtKeyString = aesHelper.decrypt(encAsymPvtKey, appKey!);
         final asymPvtKey = rsaHelper.parsePrivateKeyFromPem(asymPvtKeyString);
-        return rsaHelper.decrypt(this.encSymKeyM1, asymPvtKey);
+        return rsaHelper.decrypt(encKey, asymPvtKey);
       }
     } catch (e, st) {
       log("${e.toString()} \n ${st.toString()}");

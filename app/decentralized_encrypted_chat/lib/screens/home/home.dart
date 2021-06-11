@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+enum CreateChannel { single, group }
+
 class Home extends StatefulWidget {
   @override
   _HomeState createState() => _HomeState();
@@ -19,7 +21,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final TextEditingController _appKeyTEC = TextEditingController();
   final TextEditingController _emailTEC = TextEditingController();
-
+  final TextEditingController _groupNameTEC = TextEditingController();
+  CreateChannel _createChannel = CreateChannel.single;
   late bool _loadData;
 
   @override
@@ -164,7 +167,6 @@ class _HomeState extends State<Home> {
   }
 
   _getData() async {
-    // todo: get chat data
     setState(() {
       _loadData = true;
     });
@@ -185,39 +187,90 @@ class _HomeState extends State<Home> {
     await showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(dh * 2))),
-            actionsPadding: EdgeInsets.zero,
-            backgroundColor: Colors.white,
-            title: Text(
-              "Enter email to add a contact.",
-              style: TextStyle(color: Colors.black, fontSize: dh * 3),
+          return StatefulBuilder(
+            builder: (context, setState) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(dh * 2))),
+              actionsPadding: EdgeInsets.zero,
+              backgroundColor: Colors.white,
+              title: Text(
+                _createChannel == CreateChannel.single
+                    ? "Enter email to add a contact."
+                    : "Enter name of the group",
+                style: TextStyle(color: Colors.black, fontSize: dh * 3),
+              ),
+              content: InputField(
+                  validator: (string) =>
+                      utils.emptyOrNullStringValidator(string),
+                  hintText: _createChannel == CreateChannel.single
+                      ? "Ex: abc@gmail.com"
+                      : "Ex: flutter ",
+                  label: _createChannel == CreateChannel.single
+                      ? "Type email here"
+                      : "Group name here",
+                  textEditingController: _createChannel == CreateChannel.single
+                      ? _emailTEC
+                      : _groupNameTEC,
+                  textInputType: TextInputType.emailAddress,
+                  icon: _createChannel == CreateChannel.single
+                      ? Icons.email
+                      : Icons.group),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      log(_createChannel.index.toString());
+                      if (_createChannel == CreateChannel.single) {
+                        setState(() {
+                          _createChannel = CreateChannel.group;
+                        });
+                      } else {
+                        setState(() {
+                          _createChannel = CreateChannel.single;
+                        });
+                      }
+                    },
+                    child: Text(_createChannel == CreateChannel.single
+                        ? "NEW GROUP"
+                        : "ADD A CONTACT")),
+                TextButton(
+                    onPressed: () =>  _handleCreateChannel(),
+                    child: Text('DONE'))
+              ],
             ),
-            content: InputField(
-                validator: (string) => utils.emptyOrNullStringValidator(string),
-                hintText: "Ex: abc@gmail.com",
-                label: "Type your email",
-                textEditingController: _emailTEC,
-                textInputType: TextInputType.emailAddress,
-                icon: Icons.email),
-            actions: [
-              TextButton(onPressed: () => _addNewUser(), child: Text('DONE'))
-            ],
           );
-        });
+        }).then((value) => _resetCreateChannel());
   }
 
-  void _addNewUser() {
+  void _handleCreateChannel() async {
     try {
-      ChatProvider.addNewContact(
-              currentUser:
-                  Provider.of<UserProvider>(context, listen: false).currentUser,
-              contactEmail: _emailTEC.text,
-              appKey: Provider.of<UserProvider>(context, listen: false).appKey!)
-          .then((value) => utils.pop(context: context));
+      switch (_createChannel) {
+        case CreateChannel.single:
+         await ChatProvider.addNewContact(
+                  currentUser: Provider.of<UserProvider>(context, listen: false)
+                      .currentUser,
+                  contactEmail: _emailTEC.text,
+                  appKey:
+                      Provider.of<UserProvider>(context, listen: false).appKey!)
+              .then((value) => utils.pop(context: context))
+              .then((value) => _emailTEC.clear());
+          break;
+        case CreateChannel.group:
+         await ChatProvider.createGroup(
+                  currentUser: Provider.of<UserProvider>(context, listen: false)
+                      .currentUser,
+                  appKey:
+                      Provider.of<UserProvider>(context, listen: false).appKey!,
+                  groupName: _groupNameTEC.text)
+              .then((value) => utils.pop(context: context))
+              .then((value) => _groupNameTEC.clear());
+          break;
+      }
     } catch (e) {
       log("addnewuser: ${e.toString()}");
     }
+  }
+
+  void _resetCreateChannel() {
+    _createChannel = CreateChannel.single;
   }
 }

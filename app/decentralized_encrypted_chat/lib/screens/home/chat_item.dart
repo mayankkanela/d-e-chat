@@ -30,7 +30,9 @@ class ChatItem extends StatelessWidget {
         encAsymPvtKey: currentUser.encAsymPvtKey);
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: () => _openMessageScreen(data, currentUser, chatKey, context),
+      onTap: () => data.groupName == null
+          ? _openMessageScreen(data, currentUser, chatKey, context)
+          : _openGroupMessageScreen(data, currentUser, chatKey, context),
       child: Padding(
         padding: EdgeInsets.all(dw * 2),
         child: Column(
@@ -38,7 +40,9 @@ class ChatItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              data.getReceiverId(currentUser.email),
+              data.groupName == null
+                  ? data.getReceiverId(currentUser.email)
+                  : data.groupName ?? "empty",
               style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
@@ -68,6 +72,13 @@ class ChatItem extends StatelessWidget {
   _openMessageScreen(Chat data, CurrentUser currentUser, String? chatKey,
       BuildContext context) {
     Navigator.of(context).pushNamed(Constants.ROUTE_CHAT_SCREEN,
+        arguments: ScreenArgsMessages(
+            currentUser: currentUser, chatData: data, chatKey: chatKey));
+  }
+
+  _openGroupMessageScreen(Chat data, CurrentUser currentUser, String? chatKey,
+      BuildContext context) {
+    Navigator.of(context).pushNamed(Constants.ROUTE_GROUP_CHAT_SCREEN,
         arguments: ScreenArgsMessages(
             currentUser: currentUser, chatData: data, chatKey: chatKey));
   }

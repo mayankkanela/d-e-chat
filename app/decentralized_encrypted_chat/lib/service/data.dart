@@ -102,7 +102,7 @@ Future<DocumentSnapshot?> getCurrentUserDocument() async {
 /// chats easy and reduce query time.
 Stream<QuerySnapshot> getAllChatsQuerySnapShot(String email) {
   final Stream<QuerySnapshot> stream = _firebaseFirestore
-      .collection(Constants.CHATS)
+      .collection(Constants.CHATS2)
       .where(Chat.MEMBERS, arrayContains: email)
       .snapshots();
   return stream;
@@ -110,7 +110,7 @@ Stream<QuerySnapshot> getAllChatsQuerySnapShot(String email) {
 
 /// Function to add a new contact, a document is added to the chats
 /// collection against the current user document.
-Future<bool> addNewContactDocumentSnapshot(
+Future<bool> addNewContactBool(
     {required CurrentUser currentUser,
     required String contactEmail,
     required String appKey,
@@ -130,12 +130,49 @@ Future<bool> addNewContactDocumentSnapshot(
     final String receiverEmail = receiverDoc.docs.first["email"];
     final Map<String, dynamic> data = {};
     data[Chat.MEMBERS] = [currentUser.email, receiverEmail];
-    data[Chat.ENC_SYM_KEY_M0] = encSymKeyP0;
-    data[Chat.ENC_SYM_KEY_M1] = encSymKeyP1;
-    data[Chat.M1_INIT] = true;
     data[Chat.LAST_MESSAGE] = "";
+    data[Chat.KEYS] = <String, String>{
+      currentUser.email: encSymKeyP0,
+      contactEmail: encSymKeyP1
+    };
+    data[Chat.STATUSES] = <String, int>{
+      currentUser.email: Status.initiator.index,
+      contactEmail: Status.unprivileged.index
+    };
     await _firebaseFirestore
-        .collection(Constants.CHATS)
+        .collection(Constants.CHATS2)
+        .add(data)
+        .then((value) => log("Contact added"));
+    return true;
+  } catch (e, stacktrace) {
+    log("${e.toString()}");
+    log("${stacktrace.toString()}");
+    return false;
+  }
+}
+
+/// Function to create a new group, a document is added in chats collection,
+/// only the current user is added to the group when group is first created.
+Future<bool> createNewGroup(
+    {required CurrentUser currentUser,
+    required String groupName,
+    required String appKey}) async {
+  try {
+    final String chatKey = aesHelper.generateSymmetricKey(8);
+    final String encSymKeyP0 = aesHelper.encrypt(chatKey, appKey)!;
+
+    final Map<String, dynamic> data = {};
+    data[Chat.MEMBERS] = [currentUser.email];
+    data[Chat.LAST_MESSAGE] = "";
+    data[Chat.GROUP_NAME] = groupName;
+    data[Chat.KEYS] = <String, String>{
+      currentUser.email: encSymKeyP0,
+    };
+    data[Chat.STATUSES] = <String, int>{
+      currentUser.email: Status.initiator.index,
+    };
+    await _firebaseFirestore
+        .collection(Constants.CHATS2)
         .add(data)
         .then((value) => log("Contact added"));
     return true;
@@ -150,7 +187,7 @@ Future<bool> addNewContactDocumentSnapshot(
 /// a [ Stream ] of type [QuerySnapShot]
 Stream<QuerySnapshot> getAllMessagesQuerySnapShot(String docId) {
   final Stream<QuerySnapshot> stream = _firebaseFirestore
-      .collection(Constants.CHATS)
+      .collection(Constants.CHATS2)
       .doc(docId)
       .collection(Constants.MESSAGES)
       .orderBy("timestamp", descending: true)
@@ -163,7 +200,7 @@ Stream<QuerySnapshot> getAllMessagesQuerySnapShot(String docId) {
 Future<bool> sendMessage(Map<String, dynamic> data, String docId) async {
   try {
     await _firebaseFirestore
-        .collection(Constants.CHATS)
+        .collection(Constants.CHATS2)
         .doc(docId)
         .collection(Constants.MESSAGES)
         .add(data)
@@ -176,13 +213,45 @@ Future<bool> sendMessage(Map<String, dynamic> data, String docId) async {
   }
 }
 
-/// Set the last message sent.
+/// Update the last message sent.
 Future<void> setLastMessage(String message, documentId) async {
   try {
     await _firebaseFirestore
-        .collection(Constants.CHATS)
+        .collection(Constants.CHATS2)
         .doc(documentId)
         .update({Chat.LAST_MESSAGE: message}).then((value) => log("done"));
+  } catch (e, st) {
+    log("$e \n $st");
+  }
+}
+
+/// Add a new member to the group.
+Future<void> addNewMember(
+    {required String contactEmail,
+    required String documentId,
+    required Chat chat,
+    required String chatKey}) async {
+  try {
+    final receiverDoc = await _firebaseFirestore
+        .collection(Constants.USERS)
+        .where(CurrentUser.EMAIL, isEqualTo: contactEmail)
+        .limit(1)
+        .get();
+    final receiver = CurrentUser.fromJson(receiverDoc.docs.first.data());
+    final String encSymKey = rsaHelper.encrypt(
+        chatKey, rsaHelper.parsePublicKeyFromPem(receiver.asymPubKey));
+    chat.keys[contactEmail] = encSymKey;
+    chat.statuses[contactEmail] = 2;
+    final data = <String, dynamic>{
+      Chat.MEMBERS: FieldValue.arrayUnion([contactEmail]),
+      Chat.STATUSES: chat.statuses,
+      Chat.KEYS: chat.keys
+    };
+    await _firebaseFirestore
+        .collection(Constants.CHATS2)
+        .doc(documentId)
+        .update(data)
+        .then((value) => log("done"));
   } catch (e, st) {
     log("$e \n $st");
   }
