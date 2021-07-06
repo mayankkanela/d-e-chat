@@ -23,8 +23,7 @@ class Chat {
   final String lastMessage;
   final String docId;
 
-  Chat(
-      {required this.encKey,
+  Chat({required this.encKey,
       required this.groupName,
       required this.members,
       required this.status,

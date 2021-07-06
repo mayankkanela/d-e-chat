@@ -11,7 +11,7 @@ class Constants {
   /// ROUTE: /chatScreen
   static const ROUTE_CHAT_SCREEN = "/chatScreen";
 
-  /// ROUT: /groupChatScreen
+  /// ROUTE: /groupChatScreen
   static const ROUTE_GROUP_CHAT_SCREEN = "/groupChatScreen";
 
   /// Collection id: users, contains all user related data.
